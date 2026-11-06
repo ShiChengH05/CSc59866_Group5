@@ -84,7 +84,7 @@ Do not leave references to nonexistent images. -->
 <!-- Assignment 2. Explain required behavior before implementation methods.
 Start with 3â€“5 functions, a correctness rule, and a quality target.
 Complete design and test references during Assignments 2 and 3. -->
-Marked work to come; they are not due yet.
+Work to come; they are not due yet.
 
 | ID | Required behavior and conditions | Acceptance check | Design and test reference |
 |---|---|---|---|
@@ -102,7 +102,7 @@ Marked work to come; they are not due yet.
 
 <!-- Draft in Assignment 2; complete in Assignment 3. Compare at least two
 approaches under the same requirements, including a simple baseline. -->
-Marked work to come; they are not due yet.
+Work to come; they are not due yet.
 
 | Approach and source | Useful behavior | Limitation | Evidence or assumption |
 |---|---|---|---|
@@ -131,7 +131,7 @@ Marked work to come; they are not due yet.
 
 <!-- Assignment 3. Show context and the main running programs and stores.
 Embed a diagram from assets and retain editable source. Mermaid is optional. -->
-Marked work to come; they are not due yet.
+Work to come; they are not due yet.
 
 **Boundary and outside participants:** Replace.
 
@@ -144,7 +144,7 @@ Marked work to come; they are not due yet.
 ## 5 Component design and interfaces
 
 <!-- Assignment 3. A component can be a function or module in one program. -->
-Marked work to come; they are not due yet.
+Work to come; they are not due yet.
 
 | Component | Responsibility | Input | Output or state change |
 |---|---|---|---|
@@ -161,7 +161,7 @@ Marked work to come; they are not due yet.
 **Repeated or overlapping calls:** Define the behavior.
 
 ## 6 Data structure design
-Marked work to come; they are not due yet.
+Work to come; they are not due yet.
 
 <!-- Assignment 4. Explain information and meaning, not only storage syntax. -->
 
@@ -176,7 +176,7 @@ Marked work to come; they are not due yet.
 **Retention and deletion:** Explain how long data is needed and what deletion changes.
 
 ## 7 Algorithm design and execution
-Marked work to come; they are not due yet.
+Work to come; they are not due yet.
 
 <!-- Assignment 4. Replace this block with your pseudocode. Explain any step
 that hides a guarantee, such as a protected write. -->
@@ -197,7 +197,7 @@ ALGORITHM NAME(inputs)
 **Resource estimate:** A small justified estimate if it affects the choice.
 
 ## 8 Failures and security
-Marked work to come; they are not due yet.
+Work to come; they are not due yet.
 
 <!-- Assignment 4. Include three adverse scenarios and two misuse cases. -->
 
@@ -214,7 +214,7 @@ Marked work to come; they are not due yet.
 | Replace | Replace | Replace |
 
 ## 9 Implementation and feasibility
-Marked work to come; they are not due yet.
+Work to come; they are not due yet.
 
 <!-- Begin the feasibility experiment and path in Assignment 3; refine in Assignment 4;
 report implementation status in Assignments 5â€“6. -->
@@ -228,7 +228,7 @@ report implementation status in Assignments 5â€“6. -->
 **Run instructions and CI:** Link README.md and the recorded check.
 
 ## 10 Testing and verification
-Marked work to come; they are not due yet.
+Work to come; they are not due yet.
 
 <!-- Plan in Assignment 4; add observations in Assignments 5â€“6. Expected outcomes
 are not results. Link raw evidence. -->
@@ -250,7 +250,7 @@ are not results. Link raw evidence. -->
 **Limits and next test:** State remaining uncertainty.
 
 ## 11 Operation maintenance and future work
-Marked work to come; they are not due yet.
+Work to come; they are not due yet.
 
 <!-- Draft in Assignment 4; add operating instructions in Assignment 5;
 complete in Assignment 6. -->
