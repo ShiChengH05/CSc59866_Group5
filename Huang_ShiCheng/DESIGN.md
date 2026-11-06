@@ -13,7 +13,7 @@
 
 <!-- Write 100â€“150 words: changes, learning, main open issue, feedback addressed,
 and next step. Link evidence when available. Update at each Friday deliverable. -->
-The problem understanding section is complete. The problem, affected stakeholders, current workflow, evidence, six-week contribution, Semester II scope, and exclusions are defined. The next step is Requirements and Possible Solutions. (November 6)
+The problem research and scope understanding section is complete. The core problem of reactive autoscaling for resource lag, affected stakeholders (both internal and external), current workflow, documented evidence, six-week prototype contribution, Semester II scope, and exclusions for the project are defined. A workflow diagram of the reactive method (HPA) and a stakeholder table with working source links that support the claims of the responsibility/need for the stakeholders are integrated in Section 1. The primary open question is whether the prediction interval reduces SLO violations enough, at an acceptable resource cost, to justify its added complexity (located in Section 12). The next step is Requirements and Possible Solutions.
 
 ## Contents
 
@@ -49,8 +49,8 @@ This problem matters because it costs money and hurts users' experience when wor
 
 **Current workflow:** To understand why this problem matters, consider a concrete example. A web service normally receives 100 requests per second. At a certain time, the traffic to the web service jumps to 500 requests per second within 30 seconds. The Horizontal Pod Autoscaler (HPA), a Kubernetes (a system for automating deployment and scaling of containerized applications) component that automatically adds or removes application instances when resource usage rises above or falls below a target threshold, checks metrics every 15–30 seconds. Thirty seconds later, it detects CPU above 80%, and 15 seconds after that, it starts scaling. Each new instance takes 60–120 seconds to start, after which new capacity is available. During the waiting period, existing instances are overloaded and lack resources. Response times increase, and some requests time out. 
 
-![HPA check matrics in an interval for the traffic, and to decide whether it breached the threshold to allocating more resource required](assets/workflow.png)     
-Figure 1. The workflow shows the HPA (reactive method) for autoscaling resource usage on CPU and memory
+![Diagram showing the HPA control loop, where HPA checks metrics every 15–30 seconds, decides whether the threshold is breached, and adds replicas.](assets/workflow.png)     
+Figure 1. The HPA control loop checks metrics every 15–30 seconds and adds replicas when the threshold is breached.
 
 ### Conditions and difficulty:
 - Under normal conditions, reactive autoscaling works when resources are sufficient. 
@@ -281,7 +281,7 @@ complete in Assignment 6. -->
 
 | Open question | Why it matters | Next action |
 |---|---|---|
-| Will the prediction interval reduce SLO violations enough, at an acceptable resource cost, to justify its added complexity? This remains to be tested. | It determines whether the interval policy is used in the final design (as conclusion) | Run the simulation on the Alibaba 2021 trace and compare SLO violation rates with additional resource used|
+| Will the prediction interval reduce SLO violations enough, at an acceptable resource cost, to justify its added complexity? This remains to be tested. | It determines whether the interval policy is used in the final design | Run the simulation on the Alibaba 2021 trace and compare SLO violation rates with additional resource used|
 
 **Assistance and reuse:** Attribute sources, code, data, diagrams, and assistance under course policy.
 
@@ -295,6 +295,7 @@ Tran, Duy Anh. "Predictive autoscaling for kubernetes using machine learning wor
 
 <!-- Link actual images, editable diagram files, logs, data, and optional video.
 Explain each item's purpose. Avoid missing files and private-only paths. -->
+- Figure 1 (Section 1): workflow diagram of the HPA control loop. The image is stored at `assets/workflow.png` and shows how HPA checks metrics every 15–30 seconds, detects a threshold breach, and adds replicas that take 60–120 seconds to start. This illustrates the three-to-five-minute lag that the project addresses.
 
 ### Final document check
 
