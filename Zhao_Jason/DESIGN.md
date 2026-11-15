@@ -165,9 +165,11 @@ My evaluation will examine both educational-analysis behavior and distributed-sy
 This project is manageable because it uses simulated data, a limited number of services, and an existing LLM API instead of requiring a completely new AI model. The main contribution is not developing another AI tool that solves programming assignments. Instead, it is investigating how separate computing services can coordinate to record and analyze student-AI interactions reliably while helping instructors better understand how students are using AI during the learning process. 
 
 Next 6 Weeks Contributions
+
 Over the next six weeks, I plan to develop a basic working prototype of the student-AI interaction monitoring system. I will focus on building the main components, including a student interface, an interaction-recording service, an analysis service, and a basic instructor dashboard. I will then integrate an existing LLM API after setting up basic components to provide programming hints and explanations rather than complete solutions. I will also create simulated student interactions to test how the system identifies behaviors such as repeatedly requesting complete solutions, making recurring programming mistakes, and correcting code after receiving feedback. Finally, I will implement basic communication between services and test whether interaction records are preserved when a service becomes temporarily unavailable.
 
 Next Semester Contributions
+
 During the next semester, I plan to expand and improve the prototype by focusing on reliability, scalability, and the accuracy of interaction analysis. I will further develop the communication between services using a message broker such as RabbitMQ, allowing interactions to be processed asynchronously. I will compare rule-based analysis with LLM-based analysis to determine which method better identifies potentially concerning student behaviors while minimizing false positives. I also plan to improve the instructor dashboard so it provides more detailed interaction histories and explanations for flagged behaviors. If possible, I will introduce additional ways to evaluate learning, such as whether students can correct their own mistakes or solve similar programming problems independently after receiving AI assistance.
 
  ![Simple architecture of system](image.png)
