@@ -3,17 +3,17 @@
 **Author:** Shi Cheng Huang  
 **Course:** CSC 59866  
 **Selected project and option:** Build or improve a distributed system tool (option 1) - a predictive autoscaling for Kubernetes on resource usage to improve existing HPA before threshold is breached.     
-**Current assignment:** 1  
-**Friday commit deadline:** November 6 at 11:59 p.m. New York time  
-**Monday presentation:** November 9 at 6:30 p.m. New York time  
-**Last updated:** 11/6/26  
+**Current assignment:** 2  
+**Friday commit deadline:** November 13 at 11:59 p.m. New York time  
+**Monday presentation:** November 16 at 6:30 p.m. New York time  
+**Last updated:** 11/13/26  
 **Document status:** ready for review
 
 ## Progress note
 
 <!-- Write 100â€“150 words: changes, learning, main open issue, feedback addressed,
 and next step. Link evidence when available. Update at each Friday deliverable. -->
-The problem research and scope understanding section is complete. The core problem of reactive autoscaling for resource lag, affected stakeholders (both internal and external), current workflow, documented evidence, six-week prototype contribution, Semester II scope, and exclusions for the project are defined. A workflow diagram of the reactive method (HPA) and a stakeholder table with working source links that support the claims of the responsibility/need for the stakeholders are integrated in Section 1. The primary open question is whether the prediction interval reduces SLO violations enough, at an acceptable resource cost, to justify its added complexity (located in Section 12). The next step is Requirements and Possible Solutions.
+Section 1 is revised by adding more evidence from Cheekuri and Jeong to support the reactive method problem related to autoscaling resource usage. Section 2 defines four functional requirements (F1–F4), one correctness rule (C1), one quality target (Q1), given an ordinary example and unsuccessful example, assumptions with checks, and constraints. Section 3 compares three approaches: reactive HPA (baseline), Kairos operator, AROF, with a source for each in a table format. The comparison table shows whether each approach meets the requirements (F1-F4 and Q1). The final choice and decision record will be made in Assignment 3. The main open question remains whether the prediction interval reduces SLO violations enough to justify its complexity. The next step is Architecture and component interfaces. (11/13/26)
 
 ## Contents
 
@@ -43,7 +43,7 @@ aims from your own contribution where relevant. -->
 | Cloud operators, platform engineers, and the organization | Internal | Responsible for the cluster and for allocating resources to avoid SLO violations | https://trepo.tuni.fi/handle/10024/238698#1 |
 | Users and clients | External | Access the service and need fast responses without degradation | https://www.jisem-journal.com/index.php/journal/article/view/13473/6334 |
 
-Where SLO is a target for service performance and a violation occurs when performance fails to meet that target within a given time window.
+SLO is a target for service performance and a violation occurs when performance fails to meet that target within a given time window.
 
 This problem matters because it costs money and hurts users' experience when workloads receive the wrong amount of resources. The problem occurs under conditions where resource demand changes so quickly that the system is unable to react, especially with unpredictable workloads. When demand for a workload is steady, the reactive method can function properly, but this is not always the case when demand is bursty.
 
@@ -59,7 +59,10 @@ Figure 1. The HPA control loop checks metrics every 15–30 seconds and adds rep
 
 Therefore, the right number of resources is required for service-level objective. 
 
-**Evidence:** Reactive autoscaling is structurally lagging, with a three-to-five-minute timing period spent waiting to scale resources after the threshold is breached. During this window, it leads to tail-latency degradation (the slowest performance) and service-level objective (SLO) violations. [Documented] This claim is documented by the thesis of Tran, Duy Anh. 
+**Evidence:** 
+- Reactive autoscaling is structurally lagging, with a three-to-five-minute timing period spent waiting to scale resources after the threshold is breached. During this window, it leads to tail-latency degradation (the slowest performance) and service-level objective (SLO) violations. [Documented] This claim is documented by the thesis of Tran, Duy Anh. 
+- Conventional autoscaling, which is a reactive method, scales workloads based on the resource utilization of CPU and memory, which can lead to a failure to anticipate the burst demand of these workloads. This means that with the reactive method, the resources used for certain workloads cannot handle the burst demand for immediate changes in resources to achieve better performance. [Documented] This claim is documented by the abstract by Karthik Chakravarthy Cheekuri.
+- With sudden load spikes, Horizontal Pod Autoscaler will trigger the threshold and wait for the new resource, which can cause cold starts (the delay before a new instance is ready to serve requests), temporary under-provisioning, and frequent SLO violations. [Documented] This claim is documented by the poster abstract by Hyunsu Jeong and others.
 
 **Six-week contribution:** By the end of six weeks, I will demonstrate the prototype with its architecture: 
 - The system design on how the Random Forest forecasters with the two decision policies (point prediction and prediction interval), with simulator connects.
@@ -84,30 +87,61 @@ Do not leave references to nonexistent images. -->
 <!-- Assignment 2. Explain required behavior before implementation methods.
 Start with 3â€“5 functions, a correctness rule, and a quality target.
 Complete design and test references during Assignments 2 and 3. -->
-Work to come; they are not due yet.
 
 | ID | Required behavior and conditions | Acceptance check | Design and test reference |
 |---|---|---|---|
-| F1 | User-visible capability | Concrete check | Add as design develops |
-| C1 | Rule that must remain true | A case that could violate it | Add as design develops |
-| Q1 | Measure, unit, target, workload | Measurement procedure | Mark as target until measured |
+| F1 | Predict future CPU and memory demand to scale resources before the threshold is crossed. | Given a trace where either resource (CPU or memory) rises above the threshold, check whether the system outputs a forecast and makes a scaling decision before the breach. | Test T1 (normal operation) |
+| F2 | Support two decision policies: scale on the point prediction (single number), and scale on the prediction interval (the upper bound of the range). | Both policies will be run on the same trace and produce scaling decisions that can be compared. | Test T2 (policy comparison) |
+| F3 | Measure for each policy: SLO violation rate and additional resource cost. | The output reports both numbers for both policies on the same workload. | Test T3 (measurement) |
+| F4 | Reject old metric data, such as a sample that is 60 seconds old | A stale sample is rejected, and the system waits for fresh data | Test T4 (stale data) |
+| C1 | Use only data from before the prediction time, to avoid data leakage from the future. | Training on the full trace, so the model sees future data which lead to data leakage for testing. | Test T5 (correctness rule) |
+| Q1 | Reduce SLO violation rate compared with reactive HPA. Target is proposed until measured. Workload: Alibaba 2021 trace. | Run both policies, measure their SLO violation rate and cost. Label as proposed until results exist. | Mark as target until measured |
 
-**Inputs and outputs:** Give an ordinary example and an unsuccessful example.
+**Inputs and outputs:**
+- Ordinary example: The system receives a time series of CPU and memory usage. It outputs a forecast (when CPU will be 75%) and a decision (scale up by 2 replicas).
+- Unsuccessful example: The system receives a metric sample that is 60 seconds old. It rejects this data and waits for fresh data, instead of deciding on stale information.
 
-**Assumptions:** Conditions you rely on and how to check them.
+**Assumptions:**
+| Assumptions | How to check it |
+|---|---|
+| Kubernetes, HPA, and metrics-server are running | Check that metrics-server and HPA are active in the cluster|
+| Prediction will reduce the SLO violation rate compared with reactive HPA | Compare violation rates on the same trace|
+| The Alibaba 2021 trace represents bursty workloads | Check the trace's workload description |
+| The simulator reproduces the 60-120 second startup time to act like real Kubernetes | Run one test scaling event and time it |
 
-**Constraints:** Limits on time, tools, data, and resources.
+**Constraints:** 
+- Time: One student with two semesters to work on. 
+- Tools: Python, scikit-learn, Random Forest model, KEMU or KWOK. No production cluster (real).
+- Data: Alibaba 2021 trace. No live cluster data.
+- Resources: The simulator runs on a laptop, which is not a cloud platform.
 
 ## 3 Alternatives and selected solution
 
 <!-- Draft in Assignment 2; complete in Assignment 3. Compare at least two
 approaches under the same requirements, including a simple baseline. -->
-Work to come; they are not due yet.
 
-| Approach and source | Useful behavior | Limitation | Evidence or assumption |
+| Approach | Useful behavior | Limitation | Evidence or assumption |
 |---|---|---|---|
-| Simple baseline | Replace | Replace | Replace |
-| Candidate alternative | Replace | Replace | Replace |
+| Simple baseline: Reactive HPA | Built into Kubernetes, works for steady workloads | Scales only after the threshold is crossed, with 3-5 minutes lag and causes SLO violations | https://trepo.tuni.fi/handle/10024/238698#1 |
+| Kairos operator | Predicts future CPU and memory usage and adjusts resource allocation, using AI, before demand arrives. Allows multiple scaling modes, avoids conflicts with other Kubernetes autoscaling tools. | Needs an external AI service; relies on historical patterns; does not report an SLO violation rate. | https://operatorhub.io/operator/kairos-operator |
+| AROF (Adaptive Resource Optimization Framework) | Combines hybrid classification (clustering and tagging) and multi-horizon LSTM forecasting with cost optimization. It uses multi-horizon forecasting, which produces predictions over multiple future time horizons. | Complex model; LSTM increases training cost; long-term predictions are uncertain. Reports SLA violations, instead of SLO violations (which this project requires) | https://www.tandfonline.com/doi/full/10.1080/17445760.2025.2605532?scroll=top&needAccess=true |
+
+LSTM stands for Long Short-Term Memory, a type of neural network that learns patterns in sequences over time.   
+SLA stands for Service Level Agreement, a contractual commitment to a customer.
+
+### Comparison Table
+| Approach | F1 | F2 | F3 | F4 | Q1 |
+|---|---|---|---|---|---|
+| Simple baseline: Reactive HPA | No | No | Partial (provides raw metrics, not SLO rate or cost) | No | No |
+| Kairos operator | Yes | No (focuses on multiple modes) | No (reports cost estimation without SLO violation rate) | Not documented | Not measured |
+| AROF (Adaptive Resource Optimization Framework) | Yes | No (focuses on cost optimization) | No (reports SLA, not SLO) | Not documented | Not measured |
+
+**Requirement key:**
+- **F1:** Forecast before the breach
+- **F2:** Two decision policies (point vs. interval)
+- **F3:** Measure SLO violation rate and cost
+- **F4:** Reject stale data
+- **Q1:** Reduce SLO violation rate compared with reactive HPA
 
 **Choice and reason:** Connect your choice to requirements and constraints.
 
@@ -277,7 +311,7 @@ complete in Assignment 6. -->
 
 | Revision date | Change to my design | Reason and evidence |
 |---|---|---|
-| Replace | Replace | Replace |
+| 11/13/2026 | Add more evidences to show the reactive problem exists in the autoscaling for resource usage (in section 1) | See others have multiple evidences provided |
 
 | Open question | Why it matters | Next action |
 |---|---|---|
@@ -289,7 +323,12 @@ complete in Assignment 6. -->
 
 <!-- Use descriptive links with author/organization, title, date/version, and
 the claim supported. Also cite sources near relevant explanations. -->
-Tran, Duy Anh. "Predictive autoscaling for kubernetes using machine learning workload forecasting", Tampere University, June 2026, https://trepo.tuni.fi/handle/10024/238698#1
+Tran, Duy Anh. "Predictive autoscaling for kubernetes using machine learning workload forecasting", Tampere University, June 2026, https://trepo.tuni.fi/handle/10024/238698#1  
+Karthik Chakravarthy Cheekuri. "SLO-First Autoscaling for Multi-Tenant Microservices: A Control-Theoretic Approach to P95/P99 Latency", Journal of Information Systems Engineering and Management, https://www.jisem-journal.com/index.php/journal/article/view/13473/6334  
+Jeong et al. "SLO-Aware and Cost-Efficient Predictive Autoscaling for Kubernetes Microservices", Jeju National University, https://www.sc-asia.org/2026/data/poster/post240.pdf#1#1
+
+Kairos Operator. OperatorHub, https://operatorhub.io/operator/kairos-operator   
+Patel, Ravi, and Ashwin Makwana. "AROF: adaptive resource optimization framework for Kubernetes cluster using workload forecasting", International Journal of Parallel, Emergent and Distributed Systems, 2025, https://www.tandfonline.com/doi/full/10.1080/17445760.2025.2605532
 
 ### Supporting media and evidence
 
