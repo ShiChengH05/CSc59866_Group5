@@ -202,15 +202,23 @@ Complete design and test references during Assignments 2 and 3. -->
 
 | ID | Required behavior and conditions | Acceptance check | Design and test reference |
 |---|---|---|---|
-| F1 | User-visible capability | Concrete check | Add as design develops |
-| C1 | Rule that must remain true | A case that could violate it | Add as design develops |
-| Q1 | Measure, unit, target, workload | Measurement procedure | Mark as target until measured |
+| F1 | Students can submit programming questions or simulated interactions through a basic interface. | Submit a question and verify that it is recorded in the database. | Student interface test |
+| F2 | The system records student interactions, including questions, timestamps, and interaction history. | Verify that submitted interactions are stored and can be retrieved. | Database tests |
+| F3 | The analysis service identifies potentially concerning patterns using predefined rules, such as repeated requests for complete solutions. | Submit test interactions and verify that the expected patterns are flagged. | Rule-based analysis tests |
+| F4 | Instructors can view student interaction summaries through a dashboard. | Verify that recorded interactions and flagged patterns appear correctly. | Dashboard tests |
+| F5 | 	Different services can exchange interaction information. | Send an interaction between services and verify that the information reaches the correct component. | Service communication tests |
 
-**Inputs and outputs:** Give an ordinary example and an unsuccessful example.
+| C1 | 	The system must not automatically classify students as cheating or assume frequent AI usage means they are struggling. | Verify that flagged interactions are presented as information for instructor review rather than definitive judgments. | Classification tests |
+| C2 | 	An interaction should not be recorded multiple times because of repeated message processing. | Submit the same event more than once and verify that duplicate records are prevented. | Database and event tests |
 
-**Assumptions:** Conditions you rely on and how to check them.
+| Q1 | The prototype should process multiple simulated student interactions and display their records accurately. | Submit a predefined set of interactions and compare the submitted events with the dashboard records. | Integration tests |
+| Q2 | The system should preserve accepted interaction records when the analysis service is temporarily unavailable. | Temporarily disable the analysis service and verify that pending events are processed after recovery. | Fault-tolerance tests |
 
-**Constraints:** Limits on time, tools, data, and resources.
+**Inputs and outputs:** A student submits a Python programming question through the interface. The system records the question, timestamp, and student interaction history. The analysis service checks the interaction against predefined rules. If the student repeatedly requests complete solutions, the system flags the pattern. The instructor dashboard displays the interaction history and explains why it was flagged. A student submits a programming question, but the analysis service becomes temporarily unavailable. The interaction should not be lost. Instead, it should remain pending until the analysis service becomes available again. Another unsuccessful case would be the system incorrectly flagging a student who asks several questions because they genuinely want to understand a programming concept.
+
+**Assumptions:** Students will interact with the system through a basic web interface. Simulated student interactions will be sufficient for initial prototype testing. A database will store student interaction records. Predefined rules can identify certain interaction patterns, although they cannot definitively determine whether a student understands a concept. Different services will access the information they need to perform their tasks.
+
+**Constraints:** Time: The initial prototype must be developed within the available six-week period. Technology: The system will primarily use Python, a database, and a basic web dashboard. AI integration: The initial prototype will not include an LLM API. Analysis will rely on predefined rules. Data: Testing will use simulated student interactions rather than real student records. Resources: The project will be developed individually, so the number of services and features must remain manageable. Evaluation: Simulated interactions can test system behavior but cannot prove that the system improves actual student learning.
 
 ## 3 Alternatives and selected solution
 
