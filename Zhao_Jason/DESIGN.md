@@ -207,10 +207,8 @@ Complete design and test references during Assignments 2 and 3. -->
 | F3 | The analysis service identifies potentially concerning patterns using predefined rules, such as repeated requests for complete solutions. | Submit test interactions and verify that the expected patterns are flagged. | Rule-based analysis tests |
 | F4 | Instructors can view student interaction summaries through a dashboard. | Verify that recorded interactions and flagged patterns appear correctly. | Dashboard tests |
 | F5 | 	Different services can exchange interaction information. | Send an interaction between services and verify that the information reaches the correct component. | Service communication tests |
-
 | C1 | 	The system must not automatically classify students as cheating or assume frequent AI usage means they are struggling. | Verify that flagged interactions are presented as information for instructor review rather than definitive judgments. | Classification tests |
 | C2 | 	An interaction should not be recorded multiple times because of repeated message processing. | Submit the same event more than once and verify that duplicate records are prevented. | Database and event tests |
-
 | Q1 | The prototype should process multiple simulated student interactions and display their records accurately. | Submit a predefined set of interactions and compare the submitted events with the dashboard records. | Integration tests |
 | Q2 | The system should preserve accepted interaction records when the analysis service is temporarily unavailable. | Temporarily disable the analysis service and verify that pending events are processed after recovery. | Fault-tolerance tests |
 
