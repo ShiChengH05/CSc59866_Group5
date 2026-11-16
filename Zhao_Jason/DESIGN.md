@@ -27,7 +27,9 @@ peer-review report, review link, or review transcript is required. -->
 
 ## Progress note
 
-Currently, I still need to have proposal to be reviewed and approved. 
+I have identified the problem of limited personalized feedback in large introductory programming courses and the main stakeholders, including students, instructors, and teaching assistants. I have also researched AI tutoring systems, learning analytics, and AI-generated programming feedback. Based on this research, I developed the initial functional requirements, constraints, and quality requirements for the proposed system. I also identified and compared two possible approaches: a single application with rule-based analysis and a distributed system with separate services.
+
+Currently, I am researching how separate services can communicate reliably and how predefined rules can identify potentially concerning student-AI interaction patterns. I am also refining the system requirements and planning how student interactions will be recorded, analyzed, and displayed to instructors. My next steps are to finalize the initial architecture, design the interaction-recording and analysis workflows, and begin developing a basic prototype using simulated student interactions. I also plan to build an instructor dashboard and test service communication, duplicate prevention, and recovery when a service becomes temporarily unavailable. The initial six-week goal is to complete a basic working prototype without LLM integration. More advanced analysis and LLM integration will be considered for the following semester.
 
 ## Contents
 
@@ -225,26 +227,42 @@ approaches under the same requirements, including a simple baseline. -->
 
 | Approach and source | Useful behavior | Limitation | Evidence or assumption |
 |---|---|---|---|
-| Simple baseline | Replace | Replace | Replace |
+| Simple baseline | Records student questions, checks interactions using predefined rules, and displays flagged patterns on an instructor dashboard. | As the number of students increases, handling all tasks in one application may become difficult. A failure in one part could also affect the entire application. | Moodle's learning analytics documentation demonstrates how predefined rules and analytics can help instructors identify student activity patterns. |
 | Candidate alternative | Replace | Replace | Replace |
 
 **Choice and reason:** Connect your choice to requirements and constraints.
 
 ### Decision 1
 
-**Context and requirement:** Why is a choice needed?  
-**Options:** Plausible alternatives.  
-**Decision and reason:** What you selected and why.  
-**Consequences:** Benefits, costs, and limitations.  
-**Status and revisit condition:** Proposed or accepted; what might change it?
+Context and requirement: The system needs to record student interactions, analyze them, and display results to instructors. These components must communicate reliably, even when one component becomes temporarily unavailable.
+
+Options:
+
+Build one application that handles all functionality.
+
+Separate the system into multiple services that communicate with each other.
+
+Decision and reason: My current preference is to investigate the distributed approach because it better addresses the project's focus on service communication, independent processing, and reliability. However, I will also consider the single-application approach as a simpler baseline.
+
+Consequences: A distributed architecture provides better separation of responsibilities and allows individual services to be developed independently. However, it introduces additional development complexity and requires careful handling of communication failures and duplicate messages.
+
+Status and revisit condition: Proposed. I will revisit this decision after comparing the implementation difficulty and reliability of both approaches.
 
 ### Decision 2
 
-**Context and requirement:** Replace.  
-**Options:** Replace.  
-**Decision and reason:** Replace.  
-**Consequences:** Replace.  
-**Status and revisit condition:** Replace.
+Context and requirement: The system needs to identify potentially concerning student-AI interaction patterns without incorrectly assuming that frequent AI usage means a student is struggling.
+
+Options:
+
+Rule-based analysis using predefined conditions.
+
+Large language model (LLM)-based analysis that examines the context of student conversations.
+
+Decision and reason: My initial approach will use predefined rules because they are easier to implement, understand, and test within the six-week development period. LLM-based analysis will remain a possible future improvement.
+
+Consequences: Rule-based analysis is easier to control and produces predictable results, but it may miss patterns that require understanding the context of a conversation. LLM-based analysis could provide more contextual information, but it may produce inaccurate classifications and introduce additional costs and complexity.
+
+Status and revisit condition: Proposed. I will revisit this decision next semester when I can compare rule-based and LLM-based analysis using simulated student interactions.
 
 ## 4 Architectural design
 
