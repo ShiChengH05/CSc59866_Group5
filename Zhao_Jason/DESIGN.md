@@ -1,4 +1,4 @@
- # Your Project Design
+ # Duplicate-Safe Event Delivery for Monitoring Student-AI Interactions
 
 <!-- Copy this file into your project directory as DESIGN.md. Replace prompts
 with your own explanations as sections become due. Create assets and evidence
@@ -11,13 +11,13 @@ directories for files you include. Remove instructional comments at final submis
 **Selected project and option:** 
 Orchestrating Generative AI-based Agents for Personalized and Scalable Computing Education 
 
-**Current assignment:** 1 
+**Current assignment:** 3
 
-**Friday commit deadline:** November 6, 2026, at 11:59 p.m. New York time
+**Friday commit deadline:** November 22, 2026, at 11:59 p.m. New York time
 
-**Monday presentation:** November 9, 2026, at 6:30 p.m. New York time
+**Monday presentation:** November 23, 2026, at 6:30 p.m. New York time
 
-**Last updated:** 11/6/2026
+**Last updated:** 11/21/2026
 
 **Document status:** Proposed
 <!-- Commit and push by Friday. Supply the exact commit identifier through the
