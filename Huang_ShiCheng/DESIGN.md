@@ -6,15 +6,15 @@
 **Current assignment:** 3   
 **Friday commit deadline:** November 22 at 11:59 p.m. New York time  
 **Monday presentation:** November 23 at 6:30 p.m. New York time  
-**Last updated:** 11/21/26  
+**Last updated:** 11/22/26  
 **Document status:** ready for review
 
 ## Progress note
 
 <!-- Write 100â€“150 words: changes, learning, main open issue, feedback addressed,
 and next step. Link evidence when available. Update at each Friday deliverable. -->
-This week, I refined Sections 1 and 2 based on instructor feedback, adding literature citations, a four-milestone Semester II scope with a $t + 60\text{s}$ forecast horizon, an 80% target utilization threshold, and metrics tracking shortfall magnitude, duration, and resource cost. Section 2 now details the chronological correctness rule ($t_{\text{feature}} < t$). In Section 3, I revised by adding the proposed approaches (point and interval policies) into comparisons and against the requirement. In addition, I justified the Random Forest selection. Section 4 maps out the system architecture and data flow from Alibaba traces through the Feature Extractor and Policy Controller into the KWOK simulator. Section 5 defines component responsibilities and the predict_resource_demand critical operation. Finally, Section 9 was updated with our lightweight MVP and feasibility results.   
-  Next step: Data algorithms and failure behavior. (11/21/26)
+This week, I refined Sections 1 and 2 based on instructor feedback, adding literature citations, a four-milestone Semester II scope with a $t + 60\text{s}$ forecast horizon, an 80% target utilization threshold, and metrics tracking shortfall magnitude, duration, and resource cost. Section 2 now details the chronological correctness rule ($t_{\text{feature}} \le t$). In Section 3, I revised by adding the proposed approaches (point and interval policies) into comparisons and against the requirement. In addition, I justified the Random Forest selection. Section 4 maps out the system architecture and data flow from Alibaba traces through the Feature Extractor and Policy Controller into the KWOK simulator. Section 5 defines component responsibilities and the predict_resource_demand critical operation. Finally, Section 9 was updated with our lightweight MVP and feasibility results.   
+  Next step: Data algorithms and failure behavior. (11/22/26)
 
 ## Contents
 
@@ -104,8 +104,8 @@ Complete design and test references during Assignments 2 and 3. -->
 | F1 | Predict future CPU and memory demand to scale resources before the 80% utilization threshold [3] is crossed, using a forecast horizon of t + 60 seconds. | Given a trace where demand rises above the 80% threshold, verify that the system outputs a forecast for t + 60 seconds and initiates scaling before breach. | Test T1 (normal operation) |
 | F2 | Support two decision policies: scale on the point prediction (single number), and scale on the prediction interval (the upper bound of the range). | Both policies will be run on the same trace and produce scaling decisions that can be compared. | Test T2 (policy comparison) |
 | F3 | Measure for each policy: capacity shortfall magnitude (total numerical volume of missing resource units), shortfall duration (cumulative time steps below required capacity, reported as proxy SLO violations), and allocated resource-time cost. | The output reports total missing resource volume (demand - capacity), cumulative violating time steps, and total resource-seconds (number of replica * seconds used) for both policies on the same workload. | Test T3 (measurement) |
-| F4 | Reject stale metric data that is older than 30 seconds ($\Delta t < 30.0\text{s}$). | A sample with a timestamp older than 30 seconds from current time t is explicitly rejected, and the system waits for fresh data. | Test T4 (stale data) |
-| C1 | Use only data from before the prediction time t to prevent data leakage ($t_{\text{feature}} < t$). | Assert that training uses on a strict chronological split (first 70% of trace) ane test inference accesses no future timestamps. Test T5 injects a future-dated sample requires immediate rejection. | Test T5 (correctness rule) |
+| F4 | Reject stale metric data that is older than 30 seconds ($\Delta t \ge 30.0\text{s}$). | A sample with a timestamp older than 30 seconds from current time t is explicitly rejected, and the system waits for fresh data. | Test T4 (stale data) |
+| C1 | Use only data from before the prediction time t to prevent data leakage ($t_{\text{feature}} \le t$). | Assert that training uses on a strict chronological split (first 70% of trace) ane test inference accesses no future timestamps. Test T5 injects a future-dated sample requires immediate rejection. | Test T5 (correctness rule) |
 | Q1 | Reduce both capacity shortfall magnitude and shortfall duration (proxy SLO violations) compared to reactive HPA while keeping interval policy within 10% of the point policy. | **Definition:** A proxy SLO violation is any time step where actual demand exceeds active allocated capacity. **Target:** Achieve at least 20% fewer violating time steps (proxy SLO violations) than the reactive baseline, with no more than 10% additional resource-seconds. Workload: Alibaba 2021 trace | Compare across the reactive HPA, point policy, and interval policy. |
 
 **Inputs and outputs:**
@@ -155,7 +155,7 @@ SLA stands for Service Level Agreement, a contractual commitment to a customer.
 - **F1:** Forecast before threshold breach (t + 60 seconds horizon)
 - **F2:** Two decision policies (point vs. interval)
 - **F3:** Measure capacity shortfall magnitude, shortfall duration and cost
-- **F4:** Reject stale data ($\ge 30\text{s}$ old)
+- **F4:** Reject stale data ($\ge 30.0\text{s}$ old)
 - **Q1:** Reduce capacity shortfall magnitude, shortfall duration compared with reactive HPA
 
 **Choice and reason:** I choose the Random Forest point and interval policies because they meet the requirements and fit my project constraint better than reactive HPA, Kairos, and AROF.
@@ -199,7 +199,7 @@ Figure 2. The proposed architectural design from data extraction into compared p
 
 - Alibaba Trace: Raw historical logs stored in remote open source software storage.
     - Arrow from Alibaba Trace to Feature Extraction: raw resource used records (CPU and memory) into the processing pipeline.
-- Feature Extraction: Sliding window processor that extracts lag features and enforce strict chronological ordering ($t_{\text{feature}} < t$). Maintains temporary in-memory buffers during execution.
+- Feature Extraction: Sliding window processor that extracts lag features and enforce strict chronological ordering ($t_{\text{feature}} \le t$). Maintains temporary in-memory buffers during execution.
     - Arrow from Feature Extraction to Baseline: have current utilization metrics straight to the reactive path.
     - Arrow from Feature Extraction to Random Forest: Reject stale data (older than 30 seconds), otherwise feeds historical feature vectors into the ML model. 
 - Baseline (reactive HPA): Standard threshold-based autoscaling to react to the resource usage when crossed threshold.
@@ -227,7 +227,7 @@ Figure 2. The proposed architectural design from data extraction into compared p
 
 | Component | Responsibility | Input | Output or state change |
 |---|---|---|---|
-| Feature Extractor | Parse raw trace logs, compute lag features, and enforces the data freshness guard ($\Delta t < 30\text{s}$). | Raw CSV trace files (pd.DataFrame) and current timestamp (float) | Validated feature vector array (np.ndarray); updates in-memory sliding window buffer state. |
+| Feature Extractor | Parse raw trace logs, compute lag features while enforcing chronological order ($t_{\text{feature}} \le t$), and enforces the data freshness guard ($\Delta t < 30.0\text{s}$). | Raw CSV trace files (pd.DataFrame) and current timestamp (float) | Validated feature vector array (np.ndarray); updates in-memory sliding window buffer state. |
 | Predictive Model (Random Forest) | Processes lag features to forecast resource demand 60 seconds ahead (t + 60s). | Feature vector array (np.ndarray) and horizon (int) | Point forecast and upper-bound interval (Tuple[float, float]) |
 | Policy Controller | Evaluates metrics or model forecasts to compute target pod replica counts across reactive and proactive modes. | Demand metrics (float), current replica (int), mode (str) | Target replica count (int); updates active replica state. |
 | KWOK Simulator | Models Kubernetes cluster capacity and pod cold-start provisioned delays (60-120s). | Target replicas (int) and timestamp (int). | Updated cluster inventory state (ClusterState); output pod status timelines. |
@@ -260,6 +260,7 @@ Figure 2. The proposed architectural design from data extraction into compared p
 **Successful example:** 
 - Call: predict_resource_demand(features=np.array([[0.40, 0.42, 0.45]]), horizon=60)
 - Result: Returns (0.50, 0.57) successfully within ~3.94 ms.
+
 **Unsuccessful example:**
 - Call: Input array has an incorrect column dimension.
 - Result: Raises ValueError, triggering the simulation fallback handler to baseline reactive HPA.
@@ -326,7 +327,7 @@ report implementation status in Assignments 5â€“6. -->
 
 **Minimal path:** 
 - Data ingestion: Load a 1-hour slice of the Alibaba 2021 microservice trace logs. 
-- Feature extraction: Implement the sliding-window lag feature generator while enforcing chronological order ($t_{\text{feature}} < t$) from C1, and the 30-second freshness validation guard  ($\Delta t < 30.0\text{s}$) from Q4. 
+- Feature extraction: Implement the sliding-window lag feature generator while enforcing chronological order ($t_{\text{feature}} \le t$) from C1, and the 30-second freshness validation guard  ($\Delta t < 30.0\text{s}$) from Q4. 
 - Baseline and Model setup: Implement the reactive HPA baseline and compare with trained a lightweight local RandomForestRegressor. 
 - Simulation loop: Run a short execution tick loop to test metric reported and policy switched.
 
@@ -398,6 +399,7 @@ complete in Assignment 6. -->
 | 11/13/2026 | Add more evidences to show the reactive problem exists in the autoscaling for resource usage (in section 1) | See others have multiple evidences provided |
 | 11/18/2026 | Add in-text citations, defined the capacity and start-up delay parameter within the design, updated measurements to include capacity shortfall magnitude, shortfall duration (proxy SLO violations) and allocated resource-time cost, and tie the open question to the 3-to-5 minutes scaling lag | Revisions based on instructor feedback from Assignment 1. | 
 | 11/20/2026 | Revise section 2 with clarified the correctness rule (using a chronlogical split on trace for acceptance check); updated functional requirements (adding a forecast horizon of t + 60s with an 80% target threshold, defining capacity shortfall magnitude, duration, and cost metrics for acceptance checks, and setting the stale data threshold to 30 seconds for rejection); updated quality constraints (adding the resource-time cost limit of within 10% for the interval policy, and targeting at least a 20% reduction in shortfall duration compared to the reactive baseline); revised the successful and unsucessful examples to align with F1, F3, and F4; integrated KWOK as the Kubernetes simulator within constraints. Revise section 3 with added the proposed policy approaches (point and interval predictions) detailing useful behavior and limitation; added them to the requirement comparison table; updated requirement keys to match the current design. | Revisions based on instructor feedback from Assignment 2. |
+| 11/22/2026 | Refined inequality constraint for stale data as ($\Delta t \ge 30.0\text{s}$), and for freshness validation as ($\Delta t < 30.0\text{s}$); updated all references to chronological order to $t_{\text{feature}} \le t$, added this to the responsibility of the Feature Extractor in Section 5; fixed the formatting for the unsuccessful example in Section 5. | Internal consistency, correctness, and format check for Assignment 3 |
 
 | Open question | Why it matters | Next action |
 |---|---|---|
