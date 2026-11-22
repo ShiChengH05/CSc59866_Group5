@@ -76,11 +76,11 @@ Therefore, the right number of resources is required for service-level objective
 - **Policy comparison:** compare the forecast policy (point and interval) with reactive HPA on the same demand. 
 These four milestones will then be repeated on the memory demand series for the same microservice.  
 
-The project report two evaluation measurments:
+The project reports two evaluation measurements:
 - **Resource Shortfall (Magnitude and Duration):**
     - **Capacity Shortfall (Magnitude):** The total volume of missing resource units (CPU/memory) when actual demand exceeds active provisioned capacity during spike.
     - **Shortfall Duration (Time below modeled required capacity):** The cumulative duration which the actual demand exceeds active provisioned capacity. Since this project is trace-replay simulation tracking resource supply and demand rather than simulating new request-level queuing latency, shortfall duration is reported as a proxy for SLO violations.  
-- **Allocated resource-time:** The total compute capacity provisioned used, subject to a proposed limit of no more than 10% additional resource cost compare with the point-prediction  interval.  
+- **Allocated resource-time:** The total compute capacity used, subject to a proposed limit of no more than 10% additional resource cost compared with the point-prediction  interval.  
 
 **Expected operator improvement:** Compared with reactive HPA, an operator using the proactive policy should observe substantially less time below modeled required capacity (fewer proxy SLO violations) during the sudden spikes, while within the 10% resource-time limit.
 
@@ -109,8 +109,8 @@ Complete design and test references during Assignments 2 and 3. -->
 | Q1 | Reduce both capacity shortfall magnitude and shortfall duration (proxy SLO violations) compared to reactive HPA while keeping interval policy within 10% of the point policy. | **Definition:** A proxy SLO violation is any time step where actual demand exceeds active allocated capacity. **Target:** Achieve at least 20% fewer violating time steps (proxy SLO violations) than the reactive baseline, with no more than 10% additional resource-seconds. Workload: Alibaba 2021 trace | Compare across the reactive HPA, point policy, and interval policy. |
 
 **Inputs and outputs:**
-- Ordinary example: At time t, the system receives fresh CPU and memory usage samples (within 30 seconds of t). It predicts demand for t + 60 seconds using only samples that is $\le t$. If predicted demand exceeds the 80% utilization thresholds, it outputs a decision to scale up relicas. 
-- Unsuccessful example: The system receives a metric sample that is older than 30 seconds or contains a future timestamp ($t_{\text{feature}} > t$), it immediately reject this sample and waits for fresh data rather than making decision on stale or leaked information.  
+- Ordinary example: At time t, the system receives fresh CPU and memory usage samples (within 30 seconds of t). It predicts demand for t + 60 seconds using only samples that are $\le t$. If predicted demand exceeds the 80% utilization thresholds, it outputs a decision to scale up replicas. 
+- Unsuccessful example: The system receives a metric sample that is older than 30 seconds or contains a future timestamp ($t_{\text{feature}} > t$), it immediately rejects this sample and waits for fresh data rather than making decision on stale or leaked information.  
 
 **Assumptions:**
 | Assumptions | How to check it |
@@ -134,7 +134,7 @@ approaches under the same requirements, including a simple baseline. -->
 | Approach and source| Useful behavior | Limitation | Evidence or assumption |
 |---|---|---|---|
 | Simple baseline: Reactive HPA [1] | Built into Kubernetes, works for steady workloads | Scales only after the 80% threshold is crossed, resulting in a large capacity shortfall magnitude and 3-to-5 minutes shortfall duration (proxy SLO violation) | https://trepo.tuni.fi/handle/10024/238698#1 |
-| Proposed RF Point Policy | Anticipates demand 60 seconds ahead using single-value point forecast to trigger proactive scaling | May still incure minor shortfall magnitude during extreme variance spikes | Evaluated locally on Alibaba 2021 trace | 
+| Proposed RF Point Policy | Anticipates demand 60 seconds ahead using single-value point forecast to trigger proactive scaling | May still incur minor shortfall magnitude during extreme variance spikes | Evaluated locally on Alibaba 2021 trace | 
 | Proposed RF Interval Policy | Uses the upper prediction interval as a safety buffer to cover the 60-120 seconds pod cold-start lag. | Higher allocated resource-time cost, bounded by the proposed $\le 10%$ extra resource-second ceiling | Evaluated locally on Alibaba 2021 trace |
 | Kairos operator [4] | Predicts future CPU and memory usage and adjusts resource allocation, using AI, before demand arrives. Allows multiple scaling modes, avoids conflicts with other Kubernetes autoscaling tools. | Needs an external AI service; relies on historical patterns; does not report shortfall magnitude or duration. | https://operatorhub.io/operator/kairos-operator |
 | AROF (Adaptive Resource Optimization Framework) [5] | Combines hybrid classification (clustering and tagging) and multi-horizon LSTM forecasting with cost optimization. It uses multi-horizon forecasting, which produces predictions over multiple future time horizons. | Complex model; LSTM increases training cost; long-term predictions are uncertain. Reports SLA violations rather than resource-level capacity shortfall magnitude and duration. | https://www.tandfonline.com/doi/full/10.1080/17445760.2025.2605532?scroll=top&needAccess=true |
@@ -147,7 +147,7 @@ SLA stands for Service Level Agreement, a contractual commitment to a customer.
 |---|---|---|---|---|---|
 | Simple baseline: Reactive HPA | No | No | Partial (provides raw metrics, not shortfall magnitude, duration, or cost) | No | Reference baseline (0% reduction) |
 | Proposed RF Point Policy | Yes | Yes (point value) | Yes (shortfall magnitude, proxy SLO violation, and cost) | Yes | Target: > 0% reduction in both shortfall magnitude and duration |
-| Proposed RF Interval Policy | Yes | Yes (interval bound) | Yes (shortfall magnitude, proxy SLO violation, and cost) | Yes | Target: $\ge 20\%$ reduction in both shortfall magnitude and duration; within $\le 10\%$ extra resoruce cost |
+| Proposed RF Interval Policy | Yes | Yes (interval bound) | Yes (shortfall magnitude, proxy SLO violation, and cost) | Yes | Target: $\ge 20\%$ reduction in both shortfall magnitude and duration; with no more than 10% additional resource cost |
 | Kairos operator | Yes | No (focuses on multiple modes) | No (reports cost estimation without shortfall metrics) | Not documented | Not measured |
 | AROF (Adaptive Resource Optimization Framework) | Yes | No (focuses on cost optimization) | No (reports SLA, not proxy SLO) | Not documented | Not measured |
 
@@ -166,7 +166,7 @@ SLA stands for Service Level Agreement, a contractual commitment to a customer.
 
 **Context and requirement:** To have a machine learning model that can forecast CPU and memory demand 60 seconds ahead (F1) and provide both point and interval predictions (F2) while running locally on a standard laptop.    
 **Options:** Kairos operator (cloud AI), AROF (LSTM neural network), and Random Forest regressor.   
-**Decision and reason:** I select Random Forest regressor. It effectively captures non-linear Alibaba workload patterns without require heavy cloud infrastructure or complex neural network tuning, while supporting quantile regression for interval predictions.     
+**Decision and reason:** I select Random Forest regressor. It effectively captures non-linear Alibaba workload patterns without requiring heavy cloud infrastructure or complex neural network tuning, while supporting quantile regression for interval predictions.     
 **Consequences:**
 - Benefits: Low resource needed, robust to outliers, and straightforward interval estimation using tree quantiles.
 - Costs/Limitations: Tree-based models cannot extrapolate trends outside the numerical range seen during training.      
@@ -180,7 +180,7 @@ SLA stands for Service Level Agreement, a contractual commitment to a customer.
 **Decision and reason:** I select resource-level metrics because simulation track supply and demand. Shortfall magnitude measures deficit size, duration measures proxy SLO violations, and cost limits over-provisioned.     
 **Consequences:**
 - Benefits: Measure user-facing reliability (duration) and capacity shortfall (magnitude) without over-provisioned.
-- Costs/Limitations: This is simulated approximations rather than live production network of server.    
+- Costs/Limitations: This are simulated approximations rather than a live production network of server.    
 
 **Status and revisit condition:** Proposed, it would change when move to a live cluster environment.
 
@@ -195,7 +195,7 @@ Embed a diagram from assets and retain editable source. Mermaid is optional. -->
 
 **Main parts and messages:**    
 ![Diagram showing the architectural design with the main parts and arrow between them with the flow](assets/architecture.png)     
-Figure 2. The proposed architectural design from data extraction into compared prediciton policies with baseline (reactive) and test them in KWOK to report metrics
+Figure 2. The proposed architectural design from data extraction into compared prediction policies with baseline (reactive) and test them in KWOK to report metrics
 
 - Alibaba Trace: Raw historical logs stored in remote open source software storage.
     - Arrow from Alibaba Trace to Feature Extraction: raw resource used records (CPU and memory) into the processing pipeline.
@@ -252,7 +252,7 @@ Figure 2. The proposed architectural design from data extraction into compared p
 **State Change:** Stateless inference operation. State remains read-only, which cannot modify the state. 
 
 **Errors:** 
-- Condition 1 (Stale data): Handled at the boundary by the preceding FeatureExtractor checks the data timestamp against the 30-second freshness threshold ($\Delta t < 30.0\text{s}$) and raises a StaleMetricException if outdated.
+- Condition 1 (Stale data): Handled at the boundary by the preceding FeatureExtractor checking the data timestamp against the 30-second freshness threshold ($\Delta t < 30.0\text{s}$) and raises a StaleMetricException if outdated.
     - Caller action: The main simulation loop catches StaleMetricException, halts the proactive path and defaults to the reactive HPA baseline for that time. 
 - Condition 2 (Dimension mismatch): If the input features array shape does not match the dimensions required by the trained RandomForestRegressor, a ValueError is raised during execution.
     - Caller action: Catch ValueError, log the features mismatch, and safely fall back to the reactive baseline for the current simulation.
@@ -328,19 +328,19 @@ report implementation status in Assignments 5â€“6. -->
 **Minimal path:** 
 - Data ingestion: Load a 1-hour slice of the Alibaba 2021 microservice trace logs. 
 - Feature extraction: Implement the sliding-window lag feature generator while enforcing chronological order ($t_{\text{feature}} \le t$) from C1, and the 30-second freshness validation guard  ($\Delta t < 30.0\text{s}$) from Q4. 
-- Baseline and Model setup: Implement the reactive HPA baseline and compare with trained a lightweight local RandomForestRegressor. 
-- Simulation loop: Run a short execution tick loop to test metric reported and policy switched.
+- Baseline and Model setup: Implement the reactive HPA baseline and compare it with a trained, lightweight local RandomForestRegressor. 
+- Simulation loop: Run a short execution tick loop to test metric reporting and policy switching.
 
 **Feasibility experiment:**
 - Question: Can a local Random Forest model run inference in under 10ms using historical trace data?
 - Procedure: 
     - Extract 100 historical CPU usage rows from the trace data
     - Generate a chronological lag feature (lag_1) 
-    - Trained a RandomForestRegressor locally using Python
-    - Have single-sample inference latency using time.time()
-- Evidence: Average inference latency: ~3.94 ms per call. Memory used to run the code: < 0.1 MB. In addition, no error raised up during the execution.
-- Finding: Local Random Forest model is lightweight and fast, easily clearing real-time simulation, without needing external to execute the code. 
-- Resulting design decision: Proceed with local in-memory training and inference using standard Python library (scikit-learn, pandas, numpy) within the unified simulation runtime.
+    - Train a RandomForestRegressor locally using Python
+    - Measure single-sample inference latency using time.time()
+- Evidence: Average inference latency: ~3.94 ms per call. Memory used to run the code: < 0.1 MB. Furthermore, no errors were raised during execution.
+- Finding: Local Random Forest model is lightweight and fast, easily clearing real-time simulation, without needing external services to execute the code. 
+- Resulting design decision: Proceed with local in-memory training and inference using standard Python libraries (scikit-learn, pandas, numpy) within the unified simulation runtime.
 
 **Current implementation:** Distinguish implemented, reused, simulated, blocked, and deferred.
 
@@ -400,6 +400,7 @@ complete in Assignment 6. -->
 | 11/18/2026 | Add in-text citations, defined the capacity and start-up delay parameter within the design, updated measurements to include capacity shortfall magnitude, shortfall duration (proxy SLO violations) and allocated resource-time cost, and tie the open question to the 3-to-5 minutes scaling lag | Revisions based on instructor feedback from Assignment 1. | 
 | 11/20/2026 | Revise section 2 with clarified the correctness rule (using a chronlogical split on trace for acceptance check); updated functional requirements (adding a forecast horizon of t + 60s with an 80% target threshold, defining capacity shortfall magnitude, duration, and cost metrics for acceptance checks, and setting the stale data threshold to 30 seconds for rejection); updated quality constraints (adding the resource-time cost limit of within 10% for the interval policy, and targeting at least a 20% reduction in shortfall duration compared to the reactive baseline); revised the successful and unsucessful examples to align with F1, F3, and F4; integrated KWOK as the Kubernetes simulator within constraints. Revise section 3 with added the proposed policy approaches (point and interval predictions) detailing useful behavior and limitation; added them to the requirement comparison table; updated requirement keys to match the current design. | Revisions based on instructor feedback from Assignment 2. |
 | 11/22/2026 | Refined inequality constraint for stale data as ($\Delta t \ge 30.0\text{s}$), and for freshness validation as ($\Delta t < 30.0\text{s}$); updated all references to chronological order to $t_{\text{feature}} \le t$, added this to the responsibility of the Feature Extractor in Section 5; fixed the formatting for the unsuccessful example in Section 5. | Internal consistency, correctness, and format check for Assignment 3 |
+| 11/22/2026 | Corrected spelling typos and standardized verb tenses and grammar across Sections 1, 2, 3, 4, and 9. | Final proofreading, grammar, and typo check for Assignment 3. |
 
 | Open question | Why it matters | Next action |
 |---|---|---|
@@ -422,7 +423,7 @@ the claim supported. Also cite sources near relevant explanations. -->
 <!-- Link actual images, editable diagram files, logs, data, and optional video.
 Explain each item's purpose. Avoid missing files and private-only paths. -->
 - Figure 1 (Section 1): workflow diagram of the HPA control loop. The image is stored at `assets/workflow.png` and shows how HPA checks metrics every 15–30 seconds, detects a threshold breach, and adds replicas that take 60–120 seconds to start. This illustrates the three-to-five-minute lag that the project addresses.
-- Figure 2 (Section 4): architectural design as a diagram with how main components connected using arrow. The image is storede at 'assets/architecture.png'.    
+- Figure 2 (Section 4): architectural design as a diagram showing how the main components connect using arrows. The image is stored at assets/architecture.png.   
 
 ### Final document check
 
