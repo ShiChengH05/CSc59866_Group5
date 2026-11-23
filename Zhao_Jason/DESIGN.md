@@ -17,7 +17,7 @@ Orchestrating Generative AI-based Agents for Personalized and Scalable Computing
 
 **Monday presentation:** November 23, 2026, at 6:30 p.m. New York time
 
-**Last updated:** 11/21/2026
+**Last updated:** 11/22/2026
 
 **Document status:** Proposed
 <!-- Commit and push by Friday. Supply the exact commit identifier through the
